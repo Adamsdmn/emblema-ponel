@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMBLEMA Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: #0B0B0E; color: #EBEBF0; min-height: 100vh; padding: 40px 20px; }
+        
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        /* Счетчик по центру */
+        .online-box {
+            text-align: center;
+            background: rgba(20, 20, 28, 0.6);
+            border: 1px solid #2D2D3C;
+            border-radius: 16px;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+        .online-title { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #8F8FA8; margin-bottom: 10px; }
+        .online-count { font-size: 80px; font-weight: 800; color: #00FF88; text-shadow: 0 0 25px rgba(0,255,136,0.3); }
+
+        /* Сетка карточек */
+        .grid-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #C0C0D0; }
+        .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        /* Карточка юзера */
+        .card {
+            background: #13131A;
+            border: 1px solid #252533;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .card:hover { transform: translateY(-4px); border-color: #454560; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .username { font-weight: 600; font-size: 16px; color: #FFF; }
+        .userid { font-size: 12px; color: #6C6C8A; background: #1C1C28; padding: 4px 8px; border-radius: 6px; }
+        
+        .msg-box { background: #1A1A24; border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .msg-label { font-size: 11px; color: #7A7A9E; margin-bottom: 4px; text-transform: uppercase; }
+        .msg-text { font-size: 13px; color: #D0D0E0; word-break: break-word; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="online-box">
+            <div class="online-title">EMBLEMA Active Users</div>
+            <div class="online-count" id="onlineCount">0</div>
+        </div>
+
+        <div class="grid-title">Онлайн пользователи:</div>
+        <div class="users-grid" id="usersGrid"></div>
+    </div>
+
+    <script>
+        async function updateStats() {
+            try {
+                const res = await fetch('/api');
+                const data = await res.json();
+                
+                document.getElementById('onlineCount').innerText = data.count;
+                
+                const grid = document.getElementById('usersGrid');
+                grid.innerHTML = '';
+                
+                if(data.users.length === 0) {
+                    grid.innerHTML = '<div style="color: #6C6C8A;">Никого нет в сети...</div>';
+                    return;
+                }
+
+                data.users.forEach(user => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <span class="username">${user.username}</span>
+                            <span class="userid">ID: ${user.id}</span>
+                        </div>
+                        <div class="msg-box">
+                            <div class="msg-label">Последнее сообщение:</div>
+                            <div class="msg-text">${user.lastMessage}</div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                console.error("Ошибка загрузки данных:", e);
+            }
+        }
+
+        // Обновляем каждые 3 секунды
+        setInterval(updateStats, 3000);
+        updateStats();
+    </script>
+</body>
+</html>
